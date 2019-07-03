@@ -46,11 +46,10 @@ Currently we only support AWS IAM
 
 ### AWS
 
-We need to run this command once for configuring AWS cresdentials
+We need to prepare an AWS user with these permissions:
 
-```bash
-autossl init-aws
-```
+- iam:ListServerCertificates
+- iam:UploadServerCertificate
 
 To synchronize your certificate to AWS IAM
 
