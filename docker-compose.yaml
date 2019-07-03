@@ -1,0 +1,8 @@
+version: "3"
+services:
+  ubuntu-test:
+    image: "ubuntu"
+    volumes:
+      - ./dist/:/dist/
+    stdin_open: true
+    tty: true

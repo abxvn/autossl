@@ -1,0 +1,5 @@
+add-site () {
+    EMAIL="$1"
+    shift
+    certbot-auto certonly --no-eff-email --manual --preferred-challenges dns --server https://acme-v02.api.letsencrypt.org/directory --manual-public-ip-logging-ok --agree-tos --email "$EMAIL" ${@/#/-d }
+}

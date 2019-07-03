@@ -1,0 +1,18 @@
+check-cert () {
+    DATE_NOW=$(date -d "now" +%s)
+    DOMAIN="$1"
+    CERT_FILE="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+
+    if [ ! -f $CERT_FILE ]; then
+        echo "[ERROR] certificate file not found for domain $DOMAIN."
+    else
+        EXP_DATE=$(date -d "`openssl x509 -in $CERT_FILE -text -noout | grep "Not After" | cut -c 25-`" +%s)
+        EXP_DAYS=$(echo \( $EXP_DATE - $DATE_NOW \) / 86400 |bc)
+
+        if [[ "$EXP_DAYS" -gt "$EXP_LIMIT" ]]; then
+            echo "valid"
+        else
+            echo "expired"
+        fi
+    fi
+}

@@ -1,0 +1,182 @@
+#!/bin/bash
+
+LOCAL_PATH="/etc/letsencrypt/live"
+install-packages () {
+    apt-get update
+    apt-get install wget bc
+
+    wget https://dl.eff.org/certbot-auto
+    chmod 700 certbot-auto
+    mv certbot-auto /usr/local/bin
+}
+install-aws () {
+    apt-get install python3-pip
+
+    pip3 install awscli --upgrade --user
+    ln ~/.local/bin/aws /usr/local/bin/aws
+
+    # Add aws user for certbot with permissions:
+    # iam:ListServerCertificates
+    # iam:UploadServerCertificate
+    # iam:DeleteServerCertificate
+    aws configure
+}
+has-certificates () {
+    if [ -e "$LOCAL_PATH/*/" ]; then
+        return 0
+    else 
+        return 1
+    fi
+}
+list-sites () {
+    if [ ! has-certificates ]; then
+        echo "No certificates installed"
+    else
+        ls -ad1 $LOCAL_PATH/*/ | xargs -n 1 basename
+    fi
+}
+add-site () {
+    EMAIL="$1"
+    shift
+    certbot-auto certonly --no-eff-email --manual --preferred-challenges dns --server https://acme-v02.api.letsencrypt.org/directory --manual-public-ip-logging-ok --agree-tos --email "$EMAIL" ${@/#/-d }
+}
+get-site () {
+    SITE_NAME="$1"
+    FILE_LIST="cert.pem privkey.pem chain.pem"
+
+    if [ "$SITE_NAME" = "" ]; then
+        echo "Please provide site name"
+    elif [ ! -d "$LOCAL_PATH/$SITE_NAME" ]; then
+        echo "Site not exists"
+    else
+        for cert_file in $FILE_LIST;
+        do
+            file_path="$LOCAL_PATH/$SITE_NAME/$cert_file"
+
+            if [ -f $file_path ]; then
+                echo "===================="
+                echo " $cert_file "
+                cat $file_path
+            else
+                echo "===================="
+                echo " $cert_file: NOT EXISTS "
+            fi
+        done
+    fi
+}
+check-cert () {
+    DATE_NOW=$(date -d "now" +%s)
+    DOMAIN="$1"
+    CERT_FILE="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+
+    if [ ! -f $CERT_FILE ]; then
+        echo "[ERROR] certificate file not found for domain $DOMAIN."
+    else
+        EXP_DATE=$(date -d "`openssl x509 -in $CERT_FILE -text -noout | grep "Not After" | cut -c 25-`" +%s)
+        EXP_DAYS=$(echo \( $EXP_DATE - $DATE_NOW \) / 86400 |bc)
+
+        if [[ "$EXP_DAYS" -gt "$EXP_LIMIT" ]]; then
+            echo "valid"
+        else
+            echo "expired"
+        fi
+    fi
+}
+renew-all () {
+    if [ ! has-certificates ]; then
+        return 1
+    fi
+
+    for SITE_NAME in $(list-sites)
+    do
+        if [ "$(check-cert $SITE_NAME)" = "expired" ]; then
+            certbot-auto renew --cert-name "$SITE_NAME"
+        fi
+    done
+}
+sync-cert () {
+    if [ ! has-certificate ]; then
+        echo "No certificates installed"
+    elif [ "$1" = "" ]; then
+        echo "Please specify provider to sync"
+    elif [ "$1" = "iam" ]; then
+        echo "Syncing certificates to AWS IAM"
+        sync-cert-to-iam
+    fi
+}
+sync-cert-to-iam () {
+    FILE_LIST="cert.pem privkey.pem chain.pem"
+    DATE=`date '+%Y-%m-%d'`
+
+    if ! type aws; then
+        install-aws
+    fi
+
+    for SITE_NAME in $(list-sites)
+    do
+        echo "Uploading certificates for site: $SITE_NAME  -->  $SITE_NAME-$DATE"
+        missing_certfile=0
+
+        for cert_file in $FILE_LIST;
+        do
+            file_path="$LOCAL_PATH/$SITE_NAME/$cert_file"
+
+            if [ ! -f $file_path ]; then
+                echo " - Missing $cert_file"
+                missing_certfile=1
+            fi
+        done
+
+        if [ missing_certfile = 1 ]; then
+            continue
+        fi
+
+        aws iam upload-server-certificate --server-certificate-name "$SITE_NAME-$DATE" --certificate-body "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem"
+    done
+}
+help () {
+    echo '================================='
+    echo '  ╔══╗╦  ╦╔═╦═╗╔══╗╔══╗╔══╗╦     '
+    echo '  ╠══╣║  ║  ║  ║  ║╚══╗╚══╗║     '
+    echo '  ╩  ╩╚══╝  ╩  ╚══╝╚══╝╚══╝╩══╝  '
+    echo '  Version 1.0. TekuAsia © 2019  '
+    echo '================================='
+    echo ' Manage multiple site certificates with ease (support AWS IAM support)'
+    echo ''
+    echo ' autossl <email> <domains...>  Generate a site certificate'
+    echo '         help              Display help'
+    echo '         list              List all certificates'
+    echo '         get <domain>      Get a domain certificate'
+    echo '         renew             Renew all certificates'
+    echo '         sync <provider>   Sync certificates to a provider:'
+    echo '                           - iam: Sync to AWS IAM'
+    echo '         init-aws          Init AWS'
+    echo '         init              Init installation'
+}
+MODE="$1"
+EMAIL="$1"
+DOMAINS=${@:2}
+
+if [ "$MODE" = "help" ]; then
+    help
+elif [ "$MODE" = "renew" ]; then
+    renew-all
+elif [ "$MODE" = "list" ]; then
+    list-sites
+elif [ "$MODE" = "get" ]; then
+    get-site "$2"
+elif [ "$MODE" = "init" ]; then
+    install-packages
+elif [ "$MODE" = "init-aws" ]; then
+    install-aws
+elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "$DOMAINS" == *"."* ]]; then
+    add-site $@
+    renew-all
+elif [ "$MODE" = "sync" ]; then
+    sync-cert "$2"
+else
+    echo "Invalid syntax. Please run --help"
+    exit 1
+fi
+
+exit 0

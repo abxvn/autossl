@@ -1,0 +1,12 @@
+renew-all () {
+    if [ ! has-certificates ]; then
+        return 1
+    fi
+
+    for SITE_NAME in $(list-sites)
+    do
+        if [ "$(check-cert $SITE_NAME)" = "expired" ]; then
+            certbot-auto renew --cert-name "$SITE_NAME"
+        fi
+    done
+}

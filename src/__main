@@ -1,0 +1,27 @@
+MODE="$1"
+EMAIL="$1"
+DOMAINS=${@:2}
+
+if [ "$MODE" = "help" ]; then
+    help
+elif [ "$MODE" = "renew" ]; then
+    renew-all
+elif [ "$MODE" = "list" ]; then
+    list-sites
+elif [ "$MODE" = "get" ]; then
+    get-site "$2"
+elif [ "$MODE" = "init" ]; then
+    install-packages
+elif [ "$MODE" = "init-aws" ]; then
+    install-aws
+elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "$DOMAINS" == *"."* ]]; then
+    add-site $@
+    renew-all
+elif [ "$MODE" = "sync" ]; then
+    sync-cert "$2"
+else
+    echo "Invalid syntax. Please run --help"
+    exit 1
+fi
+
+exit 0

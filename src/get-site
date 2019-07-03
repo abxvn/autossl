@@ -1,0 +1,24 @@
+get-site () {
+    SITE_NAME="$1"
+    FILE_LIST="cert.pem privkey.pem chain.pem"
+
+    if [ "$SITE_NAME" = "" ]; then
+        echo "Please provide site name"
+    elif [ ! -d "$LOCAL_PATH/$SITE_NAME" ]; then
+        echo "Site not exists"
+    else
+        for cert_file in $FILE_LIST;
+        do
+            file_path="$LOCAL_PATH/$SITE_NAME/$cert_file"
+
+            if [ -f $file_path ]; then
+                echo "===================="
+                echo " $cert_file "
+                cat $file_path
+            else
+                echo "===================="
+                echo " $cert_file: NOT EXISTS "
+            fi
+        done
+    fi
+}
