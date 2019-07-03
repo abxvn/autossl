@@ -14,6 +14,12 @@ Bulk of scripts to help secure your AWS apps with free SSL certificates
 
 ## Installation
 
+Using the installer
+
+```bash
+curl -s -L  https://raw.githubusercontent.com/tekuasia/autossl/master/bin/installer.sh | sudo bash
+```
+
 ## Usage
 
 To generate free SSL certificate for your domain

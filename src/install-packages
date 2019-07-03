@@ -1,8 +1,8 @@
 install-packages () {
     apt-get update
-    apt-get install wget bc
+    apt-get install curl bc
 
-    wget https://dl.eff.org/certbot-auto
+    curl https://dl.eff.org/certbot-auto -O
     chmod 700 certbot-auto
     mv certbot-auto /usr/local/bin
 }
