@@ -22,9 +22,7 @@ install-packages () {
 }
 install-aws () {
     if [ -n "$(command -v yum)" ]; then
-        yum install -y epel-release python36
-        yum install python36-devel
-        yum install python36-setuptools
+        yum install -y epel-release python36 python36-devel python36-setuptools
         easy_install-3.6 pip
     elif [ -n "$(command -v apt-get)" ]; then
         apt-get install python3-pip
