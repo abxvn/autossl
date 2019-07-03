@@ -1,5 +1,10 @@
 install-aws () {
-    apt-get install python3-pip
+    if [ -n "$(command -v yum)" ]; then
+        yum install -y epel-release python36 python36-devel python36-setuptools
+        easy_install-3.6 pip
+    elif [ -n "$(command -v apt-get)" ]; then
+        apt-get install python3-pip
+    fi
 
     pip3 install awscli --upgrade --user
     ln ~/.local/bin/aws /usr/local/bin/aws

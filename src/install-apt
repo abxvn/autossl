@@ -1,0 +1,12 @@
+install-apt () {
+    if [ -n "$(command -v yum)" ]; then
+        yum update -y
+        yum install -y $@
+    elif [ -n "$(command -v apt-get)" ]; then
+        apt-get update -y
+        apt-get install -y $@
+    else
+        echo "[ERROR] Can not install package"
+        return 1
+    fi
+}

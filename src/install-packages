@@ -1,6 +1,5 @@
 install-packages () {
-    apt-get update
-    apt-get install curl bc
+    install-apt install curl bc
 
     curl https://dl.eff.org/certbot-auto -O
     chmod 700 certbot-auto

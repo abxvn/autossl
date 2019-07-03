@@ -1,7 +1,13 @@
 version: "3"
 services:
-  ubuntu-test:
+  ubuntu:
     image: "ubuntu"
+    volumes:
+      - ./dist/:/dist/
+    stdin_open: true
+    tty: true
+  centos:
+    image: "centos"
     volumes:
       - ./dist/:/dist/
     stdin_open: true
