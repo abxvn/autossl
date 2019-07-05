@@ -7,7 +7,7 @@ if [ "$MODE" = "help" ]; then
 elif [ "$MODE" = "renew" ]; then
     renew-all
 elif [ "$MODE" = "list" ]; then
-    list-sites
+    list-certs
 elif [ "$MODE" = "get" ]; then
     get-site "$2"
 elif [ "$MODE" = "init" ]; then
@@ -15,7 +15,7 @@ elif [ "$MODE" = "init" ]; then
 elif [ "$MODE" = "init-aws" ]; then
     install-aws
 elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "$DOMAINS" == *"."* ]]; then
-    add-site $@
+    add-cert $@
     renew-all
 elif [ "$MODE" = "sync" ]; then
     sync-cert "$2"

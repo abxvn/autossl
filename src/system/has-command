@@ -1,0 +1,3 @@
+has-command () {
+    [ type "$1" 1>/dev/null ]
+}

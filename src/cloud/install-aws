@@ -10,7 +10,6 @@ install-aws () {
     ln ~/.local/bin/aws /usr/local/bin/aws
 
     # Add aws user for certbot with permissions:
-    # iam:ListServerCertificates
     # iam:UploadServerCertificate
     # iam:DeleteServerCertificate
     aws configure

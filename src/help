@@ -12,8 +12,8 @@ help () {
     echo '         list              List all certificates'
     echo '         get <domain>      Get a domain certificate'
     echo '         renew             Renew all certificates'
-    echo '         sync <provider>   Sync certificates to a provider:'
-    echo '                           - iam: Sync to AWS IAM'
+    echo '         sync <provider>   Sync certificates to a provider. Provider list can be found at'
+    echo '                           https://github.com/tekuasia/autossl#cloud-integration'
     echo '         init-aws          Init AWS'
     echo '         init              Init installation'
 }

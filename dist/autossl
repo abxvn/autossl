@@ -1,6 +1,25 @@
 #!/bin/bash
 
 LOCAL_PATH="/etc/letsencrypt/live"
+help () {
+    echo '================================='
+    echo '  ╔══╗╦  ╦╔═╦═╗╔══╗╔══╗╔══╗╦     '
+    echo '  ╠══╣║  ║  ║  ║  ║╚══╗╚══╗║     '
+    echo '  ╩  ╩╚══╝  ╩  ╚══╝╚══╝╚══╝╩══╝  '
+    echo '  Version 1.0. TekuAsia © 2019  '
+    echo '================================='
+    echo ' Manage multiple site certificates with ease (support AWS IAM support)'
+    echo ''
+    echo ' autossl <email> <domains...>  Generate a site certificate'
+    echo '         help              Display help'
+    echo '         list              List all certificates'
+    echo '         get <domain>      Get a domain certificate'
+    echo '         renew             Renew all certificates'
+    echo '         sync <provider>   Sync certificates to a provider. Provider list can be found at'
+    echo '                           https://github.com/tekuasia/autossl#cloud-integration'
+    echo '         init-aws          Init AWS'
+    echo '         init              Init installation'
+}
 install-apt () {
     if [ -n "$(command -v yum)" ]; then
         yum update -y
@@ -20,43 +39,23 @@ install-packages () {
     chmod 700 certbot-auto
     mv certbot-auto /usr/local/bin
 }
-install-aws () {
-    if [ -n "$(command -v yum)" ]; then
-        yum install -y epel-release python36 python36-devel python36-setuptools
-        easy_install-3.6 pip
-    elif [ -n "$(command -v apt-get)" ]; then
-        apt-get install python3-pip
-    fi
-
-    pip3 install awscli --upgrade --user
-    ln ~/.local/bin/aws /usr/local/bin/aws
-
-    # Add aws user for certbot with permissions:
-    # iam:ListServerCertificates
-    # iam:UploadServerCertificate
-    # iam:DeleteServerCertificate
-    aws configure
-}
 has-certificates () {
-    if [ -e "$LOCAL_PATH/*/" ]; then
-        return 0
-    else 
-        return 1
-    fi
+    [ -d $LOCAL_PATH/*/ ]
 }
-list-sites () {
-    if [ ! has-certificates ]; then
-        echo "No certificates installed"
-    else
+list-certs () {
+    if has-certificates; then
         ls -ad1 $LOCAL_PATH/*/ | xargs -n 1 basename
+    else
+        echo "No certificates installed"
+        exit 1
     fi
 }
-add-site () {
+add-cert () {
     EMAIL="$1"
     shift
     certbot-auto certonly --no-eff-email --manual --preferred-challenges dns --server https://acme-v02.api.letsencrypt.org/directory --manual-public-ip-logging-ok --agree-tos --email "$EMAIL" ${@/#/-d }
 }
-get-site () {
+get-cert () {
     SITE_NAME="$1"
     FILE_LIST="cert.pem privkey.pem chain.pem"
 
@@ -110,8 +109,24 @@ renew-all () {
         fi
     done
 }
+install-aws () {
+    if [ -n "$(command -v yum)" ]; then
+        yum install -y epel-release python36 python36-devel python36-setuptools
+        easy_install-3.6 pip
+    elif [ -n "$(command -v apt-get)" ]; then
+        apt-get install python3-pip
+    fi
+
+    pip3 install awscli --upgrade --user
+    ln ~/.local/bin/aws /usr/local/bin/aws
+
+    # Add aws user for certbot with permissions:
+    # iam:UploadServerCertificate
+    # iam:DeleteServerCertificate
+    aws configure
+}
 sync-cert () {
-    if [ ! has-certificate ]; then
+    if ! has-certificates; then
         echo "No certificates installed"
     elif [ "$1" = "" ]; then
         echo "Please specify provider to sync"
@@ -122,13 +137,20 @@ sync-cert () {
 }
 sync-cert-to-iam () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    DATE=`date '+%Y-%m-%d'`
+    DATE=`date '+%Y-%m-%d-%H%M%S'`
+    SITES=$(list-certs)
 
-    if ! type aws; then
+    if ! $(has-command aws); then
         install-aws
     fi
 
-    for SITE_NAME in $(list-sites)
+    if [ "$SITES" == "" ]; then
+        return
+    fi
+
+    echo "Uploading certificates to IAM, please don't cancel during this operation"
+
+    for SITE_NAME in $SITES
     do
         echo "Uploading certificates for site: $SITE_NAME  -->  $SITE_NAME-$DATE"
         missing_certfile=0
@@ -144,30 +166,21 @@ sync-cert-to-iam () {
         done
 
         if [ missing_certfile = 1 ]; then
+            echo "[ERROR] Missing certificate file for $SITE_NAME"
             continue
         fi
 
-        aws iam upload-server-certificate --server-certificate-name "$SITE_NAME-$DATE" --certificate-body "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem"
+        # Upload new certificate to IAM
+        aws iam upload-server-certificate \
+            --server-certificate-name "$SITE_NAME-$DATE" \
+            --certificate-body "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" \
+            --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" \
+            --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" &&
+        # Rename certificate
+        aws iam update-server-certificate \
+            --server-certificate-name "$SITE_NAME-$DATE" \
+            --new-server-certificate-name "$SITE_NAME"
     done
-}
-help () {
-    echo '================================='
-    echo '  ╔══╗╦  ╦╔═╦═╗╔══╗╔══╗╔══╗╦     '
-    echo '  ╠══╣║  ║  ║  ║  ║╚══╗╚══╗║     '
-    echo '  ╩  ╩╚══╝  ╩  ╚══╝╚══╝╚══╝╩══╝  '
-    echo '  Version 1.0. TekuAsia © 2019  '
-    echo '================================='
-    echo ' Manage multiple site certificates with ease (support AWS IAM support)'
-    echo ''
-    echo ' autossl <email> <domains...>  Generate a site certificate'
-    echo '         help              Display help'
-    echo '         list              List all certificates'
-    echo '         get <domain>      Get a domain certificate'
-    echo '         renew             Renew all certificates'
-    echo '         sync <provider>   Sync certificates to a provider:'
-    echo '                           - iam: Sync to AWS IAM'
-    echo '         init-aws          Init AWS'
-    echo '         init              Init installation'
 }
 MODE="$1"
 EMAIL="$1"
@@ -178,7 +191,7 @@ if [ "$MODE" = "help" ]; then
 elif [ "$MODE" = "renew" ]; then
     renew-all
 elif [ "$MODE" = "list" ]; then
-    list-sites
+    list-certs
 elif [ "$MODE" = "get" ]; then
     get-site "$2"
 elif [ "$MODE" = "init" ]; then
@@ -186,7 +199,7 @@ elif [ "$MODE" = "init" ]; then
 elif [ "$MODE" = "init-aws" ]; then
     install-aws
 elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "$DOMAINS" == *"."* ]]; then
-    add-site $@
+    add-cert $@
     renew-all
 elif [ "$MODE" = "sync" ]; then
     sync-cert "$2"

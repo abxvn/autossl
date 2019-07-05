@@ -1,5 +1,5 @@
 sync-cert () {
-    if [ ! has-certificate ]; then
+    if ! has-certificates; then
         echo "No certificates installed"
     elif [ "$1" = "" ]; then
         echo "Please specify provider to sync"

@@ -1,7 +1,0 @@
-list-sites () {
-    if [ ! has-certificates ]; then
-        echo "No certificates installed"
-    else
-        ls -ad1 $LOCAL_PATH/*/ | xargs -n 1 basename
-    fi
-}

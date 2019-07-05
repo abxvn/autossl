@@ -1,4 +1,4 @@
-get-site () {
+get-cert () {
     SITE_NAME="$1"
     FILE_LIST="cert.pem privkey.pem chain.pem"
 
