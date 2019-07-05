@@ -1,0 +1,11 @@
+get-cert-name () {
+    DOMAIN="$1"
+    CERT_FILE="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+
+    if [ ! -f $CERT_FILE ]; then
+        echo "[ERROR] certificate file not found for domain $DOMAIN."
+        return 1
+    else
+        echo "$(openssl x509 -in "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" -text | grep "DNS" | sed -e "s/DNS://g" -e "s/ //g" -e "s/,/-/g" -e "s/*/+/g")"
+    fi
+}

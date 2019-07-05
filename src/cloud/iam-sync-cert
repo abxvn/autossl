@@ -1,9 +1,9 @@
-sync-cert-to-iam () {
+iam-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    DATE=`date '+%Y-%m-%d-%H%M%S'`
+    DATE=`date '+%Y-%m'`
     SITES=$(list-certs)
 
-    if ! $(has-command aws); then
+    if ! has-command aws; then
         install-aws
     fi
 
@@ -13,9 +13,10 @@ sync-cert-to-iam () {
 
     echo "Uploading certificates to IAM, please don't cancel during this operation"
 
-    for SITE_NAME in $SITES
+    for SITE_NAME in $SITES 
     do
-        echo "Uploading certificates for site: $SITE_NAME  -->  $SITE_NAME-$DATE"
+        CERT_NAME="$(get-cert-name $SITE_NAME)-$DATE"
+        echo "Uploading certificates for site: $SITE_NAME  -->  $CERT_NAME"
         missing_certfile=0
 
         for cert_file in $FILE_LIST;
@@ -33,15 +34,18 @@ sync-cert-to-iam () {
             continue
         fi
 
+        if [ "$CERT_NAME" = "" ]; then
+            echo "[ERROR] Can't get cert name for $SITE_NAME"
+            continue
+        fi
+
         # Upload new certificate to IAM
-        aws iam upload-server-certificate \
-            --server-certificate-name "$SITE_NAME-$DATE" \
+        if aws iam upload-server-certificate \
+            --server-certificate-name "$CERT_NAME" \
             --certificate-body "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" \
             --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" \
-            --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" &&
-        # Rename certificate
-        aws iam update-server-certificate \
-            --server-certificate-name "$SITE_NAME-$DATE" \
-            --new-server-certificate-name "$SITE_NAME"
+            --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" 1>/dev/null; then
+            echo "Done"
+        fi
     done
 }

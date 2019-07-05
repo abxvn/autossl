@@ -2,12 +2,14 @@ __constants
 help
 system/install-apt
 system/install-packages
+system/has-command
 cert/has-certificates
 cert/list-certs
 cert/add-cert
 cert/get-cert
+cert/get-cert-name
 cert/check-cert
 cert/renew-all
-cloud/install-aws
 cloud/sync-cert
-cloud/sync-cert-to-iam
+cloud/install-aws
+cloud/iam-sync-cert

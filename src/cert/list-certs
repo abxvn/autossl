@@ -1,5 +1,5 @@
 list-certs () {
-    if has-certificates; then
+    if [ has-certificates ]; then
         ls -ad1 $LOCAL_PATH/*/ | xargs -n 1 basename
     else
         echo "No certificates installed"

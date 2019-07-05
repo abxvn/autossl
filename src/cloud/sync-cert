@@ -1,10 +1,10 @@
 sync-cert () {
-    if ! has-certificates; then
+    if [ ! has-certificates ]; then
         echo "No certificates installed"
     elif [ "$1" = "" ]; then
         echo "Please specify provider to sync"
     elif [ "$1" = "iam" ]; then
         echo "Syncing certificates to AWS IAM"
-        sync-cert-to-iam
+        iam-sync-cert
     fi
 }

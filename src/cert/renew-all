@@ -3,10 +3,12 @@ renew-all () {
         return 1
     fi
 
-    for SITE_NAME in $(list-sites)
+    for SITE_NAME in $(list-certs)
     do
         if [ "$(check-cert $SITE_NAME)" = "expired" ]; then
             certbot-auto renew --cert-name "$SITE_NAME"
+        else
+            echo "$SITE_NAME hasn't expired yet"
         fi
     done
 }

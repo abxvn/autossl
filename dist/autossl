@@ -33,17 +33,20 @@ install-apt () {
     fi
 }
 install-packages () {
-    install-apt install curl bc
+    install-apt curl bc
 
     curl https://dl.eff.org/certbot-auto -O
     chmod 700 certbot-auto
     mv certbot-auto /usr/local/bin
 }
+has-command () {
+    type "$1" 1>/dev/null 2>&1
+}
 has-certificates () {
-    [ -d $LOCAL_PATH/*/ ]
+    [ -d "$LOCAL_PATH/*/" ]
 }
 list-certs () {
-    if has-certificates; then
+    if [ has-certificates ]; then
         ls -ad1 $LOCAL_PATH/*/ | xargs -n 1 basename
     else
         echo "No certificates installed"
@@ -79,6 +82,17 @@ get-cert () {
         done
     fi
 }
+get-cert-name () {
+    DOMAIN="$1"
+    CERT_FILE="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+
+    if [ ! -f $CERT_FILE ]; then
+        echo "[ERROR] certificate file not found for domain $DOMAIN."
+        return 1
+    else
+        echo "$(openssl x509 -in "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" -text | grep "DNS" | sed -e "s/DNS://g" -e "s/ //g" -e "s/,/-/g" -e "s/*/+/g")"
+    fi
+}
 check-cert () {
     DATE_NOW=$(date -d "now" +%s)
     DOMAIN="$1"
@@ -102,12 +116,24 @@ renew-all () {
         return 1
     fi
 
-    for SITE_NAME in $(list-sites)
+    for SITE_NAME in $(list-certs)
     do
         if [ "$(check-cert $SITE_NAME)" = "expired" ]; then
             certbot-auto renew --cert-name "$SITE_NAME"
+        else
+            echo "$SITE_NAME hasn't expired yet"
         fi
     done
+}
+sync-cert () {
+    if [ ! has-certificates ]; then
+        echo "No certificates installed"
+    elif [ "$1" = "" ]; then
+        echo "Please specify provider to sync"
+    elif [ "$1" = "iam" ]; then
+        echo "Syncing certificates to AWS IAM"
+        iam-sync-cert
+    fi
 }
 install-aws () {
     if [ -n "$(command -v yum)" ]; then
@@ -125,22 +151,12 @@ install-aws () {
     # iam:DeleteServerCertificate
     aws configure
 }
-sync-cert () {
-    if ! has-certificates; then
-        echo "No certificates installed"
-    elif [ "$1" = "" ]; then
-        echo "Please specify provider to sync"
-    elif [ "$1" = "iam" ]; then
-        echo "Syncing certificates to AWS IAM"
-        sync-cert-to-iam
-    fi
-}
-sync-cert-to-iam () {
+iam-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    DATE=`date '+%Y-%m-%d-%H%M%S'`
+    DATE=`date '+%Y-%m'`
     SITES=$(list-certs)
 
-    if ! $(has-command aws); then
+    if ! has-command aws; then
         install-aws
     fi
 
@@ -150,9 +166,10 @@ sync-cert-to-iam () {
 
     echo "Uploading certificates to IAM, please don't cancel during this operation"
 
-    for SITE_NAME in $SITES
+    for SITE_NAME in $SITES 
     do
-        echo "Uploading certificates for site: $SITE_NAME  -->  $SITE_NAME-$DATE"
+        CERT_NAME="$(get-cert-name $SITE_NAME)-$DATE"
+        echo "Uploading certificates for site: $SITE_NAME  -->  $CERT_NAME"
         missing_certfile=0
 
         for cert_file in $FILE_LIST;
@@ -170,16 +187,19 @@ sync-cert-to-iam () {
             continue
         fi
 
+        if [ "$CERT_NAME" = "" ]; then
+            echo "[ERROR] Can't get cert name for $SITE_NAME"
+            continue
+        fi
+
         # Upload new certificate to IAM
-        aws iam upload-server-certificate \
-            --server-certificate-name "$SITE_NAME-$DATE" \
+        if aws iam upload-server-certificate \
+            --server-certificate-name "$CERT_NAME" \
             --certificate-body "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" \
             --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" \
-            --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" &&
-        # Rename certificate
-        aws iam update-server-certificate \
-            --server-certificate-name "$SITE_NAME-$DATE" \
-            --new-server-certificate-name "$SITE_NAME"
+            --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" 1>/dev/null; then
+            echo "Done"
+        fi
     done
 }
 MODE="$1"
