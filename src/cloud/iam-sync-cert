@@ -3,20 +3,14 @@ iam-sync-cert () {
     DATE=`date '+%Y-%m'`
     SITES=$(list-certs)
 
-    if ! has-command aws; then
-        install-aws
-    fi
-
     if [ "$SITES" == "" ]; then
         return
     fi
 
-    echo "Uploading certificates to IAM, please don't cancel during this operation"
-
     for SITE_NAME in $SITES 
     do
         CERT_NAME="$(get-cert-name $SITE_NAME)-$DATE"
-        echo "Uploading certificates for site: $SITE_NAME  -->  $CERT_NAME"
+        echo "Importing certificates for site: $SITE_NAME  -->  $CERT_NAME"
         missing_certfile=0
 
         for cert_file in $FILE_LIST;
@@ -45,7 +39,7 @@ iam-sync-cert () {
             --certificate-body "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" \
             --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" \
             --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" 1>/dev/null; then
-            echo "Done"
+            echo "Created"
         fi
     done
 }

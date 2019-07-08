@@ -1,0 +1,63 @@
+acm-sync-cert () {
+    FILE_LIST="cert.pem privkey.pem chain.pem"
+    SITES=$(list-certs)
+
+    if [ "$SITES" == "" ]; then
+        return
+    fi
+
+    ACM_ARNS_STR=$(acm-list-cert-arns)
+    declare -a ACM_ARNS=($ACM_ARNS_STR)
+    declare -a ACM_NAMES=($(acm-list-cert-names "$ACM_ARNS_STR"))
+
+    for SITE_NAME in $SITES 
+    do
+        CERT_NAME="$(get-cert-name $SITE_NAME)"
+        echo "Importing certificates for site: $SITE_NAME  -->  $CERT_NAME"
+        missing_certfile=0
+
+        for cert_file in $FILE_LIST;
+        do
+            file_path="$LOCAL_PATH/$SITE_NAME/$cert_file"
+
+            if [ ! -f $file_path ]; then
+                echo " - Missing $cert_file"
+                missing_certfile=1
+            fi
+        done
+
+        if [ missing_certfile = 1 ]; then
+            echo "[ERROR] Missing certificate file for $SITE_NAME"
+            continue
+        fi
+
+        if [ "$CERT_NAME" = "" ]; then
+            echo "[ERROR] Can't get cert name for $SITE_NAME"
+            continue
+        fi
+
+        acm_arn=""
+        for i in "${!ACM_NAMES[@]}"; do
+            if [ "${ACM_NAMES[$i]}" = "$CERT_NAME" ]; then
+                acm_arn="${ACM_ARNS[$i]}"
+            fi
+        done
+
+        if [ "$acm_arn" = "" ]; then
+            if aws acm import-certificate \
+                --certificate "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" \
+                --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" \
+                --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" 1>/dev/null; then
+                echo "Created"
+            fi
+        else
+            if aws acm import-certificate \
+                --certificate-arn "$acm_arn" \
+                --certificate "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" \
+                --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" \
+                --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" 1>/dev/null; then
+                echo "Updated"
+            fi
+        fi
+    done
+}
