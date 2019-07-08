@@ -2,6 +2,8 @@
 
 Bulk of scripts to help secure your AWS apps with free SSL certificates
 
+[![Cirle CI][cirle-ci-badge]][cirle-ci-url]
+
 > :innocent: A :star: from you will make my day full of happiness :innocent:
 
 ## Table of contents
@@ -93,3 +95,6 @@ Thank you :)
 ## License
 
 These code are licensed under MIT License. You are free to use any parts of it.
+
+[cirle-ci-badge]: https://circleci.com/gh/tekuasia/autossl/tree/master.svg?style=shield
+[cirle-ci-url]: https://circleci.com/gh/tekuasia/autossl/tree/master

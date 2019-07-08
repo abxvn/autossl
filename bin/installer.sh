@@ -1,6 +1,7 @@
 #!bin/bash
 
 curl https://raw.githubusercontent.com/tekuasia/autossl/master/dist/autossl -O
-chmod 700 autossl
+
+chmod +x autossl
 mv autossl /usr/local/bin/autossl
-autossl init
+/usr/local/bin/autossl init
