@@ -1,0 +1,2 @@
+./autossl init
+./autossl list

@@ -1,0 +1,21 @@
+version	: 2.1
+jobs:
+  test-ubuntu:
+    docker:
+      - image: ubuntu:18.04
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: bash bin/test.sh
+  test-centos:
+    docker:
+      - image: centos:7
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: bash bin/test.sh
+workflows:
+  test_simple:
+    jobs:
+      - test-ubuntu:
+      - test-centos:
