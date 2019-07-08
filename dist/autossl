@@ -11,13 +11,14 @@ help () {
     echo ' Manage multiple site certificates with ease (support AWS IAM support)'
     echo ''
     echo ' autossl <email> <domains...>  Generate a site certificate'
-    echo '         help              Display help'
     echo '         list              List all certificates'
     echo '         get <domain>      Get a domain certificate'
     echo '         renew             Renew all certificates'
     echo '         sync <provider>   Sync certificates to a provider. Provider list can be found at'
     echo '                           https://github.com/tekuasia/autossl#cloud-integration'
+    echo '         help              Display help'
     echo '         init-aws          Init AWS'
+    echo '         init-gcloud       Init Gcloud'
     echo '         init              Init installation'
 }
 install-apt () {
@@ -146,6 +147,14 @@ sync-cert () {
         fi
         
         acm-sync-cert
+    elif [ "$1" = "gcloud" ]; then
+        echo "Importing certificates to Gcloud, please don't cancel during this operation"
+
+        if ! has-command gcloud; then
+            install-gcloud
+        fi
+        
+        gcloud-sync-cert
     else
         echo "[ERROR] Not supported cloud provider: $1"
     fi
@@ -274,14 +283,52 @@ acm-sync-cert () {
         fi
     done
 }
-acm-list-cert-arns () {
-    echo "$(aws acm list-certificates --query 'CertificateSummaryList[*].CertificateArn' --output text)"
-}
-acm-list-cert-names () {
-    declare -a ACM_CERTIFICATES=$1
+install-gcloud () {
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y && apt-get install google-cloud-sdk -y
 
-    for cert_arn in $ACM_CERTIFICATES; do
-        aws acm describe-certificate --certificate-arn "$cert_arn" --query "Certificate.SubjectAlternativeNames | sort(@)" --output text | sed -E 's:\s+:-:g' | sed -e "s:*:+:g"
+    gcloud init
+}
+gcloud-sync-cert () {
+    FILE_LIST="cert.pem privkey.pem chain.pem"
+    SITES=$(list-certs)
+    DATE=`date '+%Y-%m'`
+
+    if [ "$SITES" == "" ]; then
+        return
+    fi
+
+    for SITE_NAME in $SITES 
+    do
+        CERT_NAME="$(get-cert-name $SITE_NAME | sed -e "s:\-:--:g" -e "s:\+\.:wc-:g" -e "s:\.:-:g")-$DATE"
+        echo "Importing certificates for site: $SITE_NAME  -->  $CERT_NAME"
+        missing_certfile=0
+
+        for cert_file in $FILE_LIST;
+        do
+            file_path="$LOCAL_PATH/$SITE_NAME/$cert_file"
+
+            if [ ! -f $file_path ]; then
+                echo " - Missing $cert_file"
+                missing_certfile=1
+            fi
+        done
+
+        if [ missing_certfile = 1 ]; then
+            echo "[ERROR] Missing certificate file for $SITE_NAME"
+            continue
+        fi
+
+        if [ "$CERT_NAME" = "" ]; then
+            echo "[ERROR] Can't get cert name for $SITE_NAME"
+            continue
+        fi
+
+        # Upload new certificate to Gcloud
+        if gcloud compute ssl-certificates create $CERT_NAME \
+            --certificate "$LOCAL_PATH/$SITE_NAME/cert.pem" \
+            --private-key "$LOCAL_PATH/$SITE_NAME/privkey.pem"; then
+            echo "Created"
+        fi
     done
 }
 MODE="$1"
@@ -300,6 +347,8 @@ elif [ "$MODE" = "init" ]; then
     install-packages
 elif [ "$MODE" = "init-aws" ]; then
     install-aws
+elif [ "$MODE" = "init-gcloud" ]; then
+    install-gcloud
 elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "$DOMAINS" == *"."* ]]; then
     add-cert $@
     renew-all

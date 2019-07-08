@@ -19,6 +19,14 @@ sync-cert () {
         fi
         
         acm-sync-cert
+    elif [ "$1" = "gcloud" ]; then
+        echo "Importing certificates to Gcloud, please don't cancel during this operation"
+
+        if ! has-command gcloud; then
+            install-gcloud
+        fi
+        
+        gcloud-sync-cert
     else
         echo "[ERROR] Not supported cloud provider: $1"
     fi

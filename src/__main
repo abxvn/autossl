@@ -14,6 +14,8 @@ elif [ "$MODE" = "init" ]; then
     install-packages
 elif [ "$MODE" = "init-aws" ]; then
     install-aws
+elif [ "$MODE" = "init-gcloud" ]; then
+    install-gcloud
 elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "$DOMAINS" == *"."* ]]; then
     add-cert $@
     renew-all
