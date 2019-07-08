@@ -1,2 +1,2 @@
-./autossl init
-./autossl list
+./dist/autossl init
+./dist/autossl list
