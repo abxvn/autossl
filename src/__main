@@ -5,7 +5,7 @@ DOMAINS=${@:2}
 if [ "$MODE" = "help" ]; then
     help
 elif [ "$MODE" = "renew" ]; then
-    renew-all
+    renew-all "$2"
 elif [ "$MODE" = "list" ]; then
     list-certs
 elif [ "$MODE" = "get" ]; then
@@ -20,7 +20,7 @@ elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "
     add-cert $@
     renew-all
 elif [ "$MODE" = "sync" ]; then
-    sync-cert "$2"
+    sync-cert "$2" "$3"
 else
     echo "Invalid syntax. Please run --help"
     exit 1

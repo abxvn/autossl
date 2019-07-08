@@ -1,7 +1,18 @@
 sync-cert () {
     if [ ! has-certificates ]; then
         echo "No certificates installed"
-    elif [ "$1" = "" ]; then
+        return 1
+    fi
+
+    CERT_LIST=$(list-certs)
+    SITES=${2:-"$CERT_LIST"}
+
+    if [ "$SITES" == "" ]; then
+        echo "Cannot retrieve certificates"
+        return 1
+    fi
+
+    if [ "$1" = "" ]; then
         echo "Please specify provider to sync"
     elif [ "$1" = "iam" ]; then
         echo "Importing certificates to AWS IAM, please don't cancel during this operation"
@@ -10,7 +21,7 @@ sync-cert () {
             install-aws
         fi
 
-        iam-sync-cert
+        iam-sync-cert "$SITES"
     elif [ "$1" = "acm" ]; then
         echo "Importing certificates to AWS ACM, please don't cancel during this operation"
 
@@ -18,7 +29,7 @@ sync-cert () {
             install-aws
         fi
         
-        acm-sync-cert
+        acm-sync-cert "$SITES"
     elif [ "$1" = "gcloud" ]; then
         echo "Importing certificates to Gcloud, please don't cancel during this operation"
 
@@ -26,7 +37,7 @@ sync-cert () {
             install-gcloud
         fi
         
-        gcloud-sync-cert
+        gcloud-sync-cert "$SITES"
     else
         echo "[ERROR] Not supported cloud provider: $1"
     fi

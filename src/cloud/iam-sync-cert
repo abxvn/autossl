@@ -1,11 +1,7 @@
 iam-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
     DATE=`date '+%Y-%m'`
-    SITES=$(list-certs)
-
-    if [ "$SITES" == "" ]; then
-        return
-    fi
+    SITES=$1
 
     for SITE_NAME in $SITES 
     do

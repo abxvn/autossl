@@ -1,11 +1,7 @@
 gcloud-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    SITES=$(list-certs)
     DATE=`date '+%Y-%m'`
-
-    if [ "$SITES" == "" ]; then
-        return
-    fi
+    SITES=$1
 
     for SITE_NAME in $SITES 
     do

@@ -117,11 +117,21 @@ renew-all () {
         return 1
     fi
 
+    MODE="$1"
+
     for SITE_NAME in $(list-certs)
     do
         if [ "$(check-cert $SITE_NAME)" = "expired" ]; then
-            certbot-auto renew --cert-name "$SITE_NAME"
-        else
+            if certbot-auto renew --cert-name "$SITE_NAME"; then
+                if [ "$MODE" != "-d" ]; then
+                    echo "$SITE_NAME renewal suceeded"
+                else
+                    echo "$SITE_NAME"
+                fi
+            elif [ "$MODE" != "-d" ]; then
+                echo "$SITE_NAME renewal failed"
+            fi
+        elif [ "$MODE" != "-d" ]; then
             echo "$SITE_NAME hasn't expired yet"
         fi
     done
@@ -129,7 +139,18 @@ renew-all () {
 sync-cert () {
     if [ ! has-certificates ]; then
         echo "No certificates installed"
-    elif [ "$1" = "" ]; then
+        return 1
+    fi
+
+    CERT_LIST=$(list-certs)
+    SITES=${2:-"$CERT_LIST"}
+
+    if [ "$SITES" == "" ]; then
+        echo "Cannot retrieve certificates"
+        return 1
+    fi
+
+    if [ "$1" = "" ]; then
         echo "Please specify provider to sync"
     elif [ "$1" = "iam" ]; then
         echo "Importing certificates to AWS IAM, please don't cancel during this operation"
@@ -138,7 +159,7 @@ sync-cert () {
             install-aws
         fi
 
-        iam-sync-cert
+        iam-sync-cert "$SITES"
     elif [ "$1" = "acm" ]; then
         echo "Importing certificates to AWS ACM, please don't cancel during this operation"
 
@@ -146,7 +167,7 @@ sync-cert () {
             install-aws
         fi
         
-        acm-sync-cert
+        acm-sync-cert "$SITES"
     elif [ "$1" = "gcloud" ]; then
         echo "Importing certificates to Gcloud, please don't cancel during this operation"
 
@@ -154,7 +175,7 @@ sync-cert () {
             install-gcloud
         fi
         
-        gcloud-sync-cert
+        gcloud-sync-cert "$SITES"
     else
         echo "[ERROR] Not supported cloud provider: $1"
     fi
@@ -178,11 +199,7 @@ install-aws () {
 iam-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
     DATE=`date '+%Y-%m'`
-    SITES=$(list-certs)
-
-    if [ "$SITES" == "" ]; then
-        return
-    fi
+    SITES=$1
 
     for SITE_NAME in $SITES 
     do
@@ -222,11 +239,7 @@ iam-sync-cert () {
 }
 acm-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    SITES=$(list-certs)
-
-    if [ "$SITES" == "" ]; then
-        return
-    fi
+    SITES=$1
 
     ACM_ARNS_STR=$(acm-list-cert-arns)
     declare -a ACM_ARNS=($ACM_ARNS_STR)
@@ -283,6 +296,16 @@ acm-sync-cert () {
         fi
     done
 }
+acm-list-cert-arns () {
+    echo "$(aws acm list-certificates --query 'CertificateSummaryList[*].CertificateArn' --output text)"
+}
+acm-list-cert-names () {
+    declare -a ACM_CERTIFICATES=$1
+
+    for cert_arn in $ACM_CERTIFICATES; do
+        aws acm describe-certificate --certificate-arn "$cert_arn" --query "Certificate.SubjectAlternativeNames | sort(@)" --output text | sed -E 's:\s+:-:g' | sed -e "s:*:+:g"
+    done
+}
 install-gcloud () {
     if [ -n "$(command -v yum)" ]; then
         REPO_FILE=/etc/yum.repos.d/google-cloud-sdk.repo
@@ -304,12 +327,8 @@ install-gcloud () {
 }
 gcloud-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    SITES=$(list-certs)
     DATE=`date '+%Y-%m'`
-
-    if [ "$SITES" == "" ]; then
-        return
-    fi
+    SITES=$1
 
     for SITE_NAME in $SITES 
     do
@@ -352,7 +371,7 @@ DOMAINS=${@:2}
 if [ "$MODE" = "help" ]; then
     help
 elif [ "$MODE" = "renew" ]; then
-    renew-all
+    renew-all "$2"
 elif [ "$MODE" = "list" ]; then
     list-certs
 elif [ "$MODE" = "get" ]; then
@@ -367,7 +386,7 @@ elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "
     add-cert $@
     renew-all
 elif [ "$MODE" = "sync" ]; then
-    sync-cert "$2"
+    sync-cert "$2" "$3"
 else
     echo "Invalid syntax. Please run --help"
     exit 1

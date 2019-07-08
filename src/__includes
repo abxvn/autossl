@@ -14,5 +14,7 @@ cloud/sync-cert
 cloud/install-aws
 cloud/iam-sync-cert
 cloud/acm-sync-cert
+cloud/acm-list-cert-arns
+cloud/acm-list-cert-names
 cloud/install-gcloud
 cloud/gcloud-sync-cert

@@ -1,10 +1,6 @@
 acm-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    SITES=$(list-certs)
-
-    if [ "$SITES" == "" ]; then
-        return
-    fi
+    SITES=$1
 
     ACM_ARNS_STR=$(acm-list-cert-arns)
     declare -a ACM_ARNS=($ACM_ARNS_STR)
