@@ -16,8 +16,9 @@ Bulk of scripts to help secure your AWS apps with free SSL certificates
 4. [Automate renewal](#automate-renewal)
    - [Renewal without cloud](#renewal-without-cloud)
    - [Renewal with cloud](#renewal-with-cloud)
-5. [Contribution](#contribution)
-6. [License](#license)
+5. [Local servers integration](#local-servers-integration)
+6. [Contribution](#contribution)
+7. [License](#license)
 
 ## Installation
 
@@ -128,6 +129,13 @@ Then add this line to make renewal automated and renewed certificates synced to 
 00 03 * * * autossl sync <provider> "$(autossl renew -d)"
 ```
 
+## Local servers integration
+
+Here are some helpful references for local servers integration instruction:
+
+For nginx: [https://gist.github.com/nrollr/9a39bb636a820fb97eec2ed85e473d38](https://gist.github.com/nrollr/9a39bb636a820fb97eec2ed85e473d38)
+
+For Apache: [https://techmonger.github.io/50/certbot-apache-configuration/](https://techmonger.github.io/50/certbot-apache-configuration/)
 
 ## Contribution
 
@@ -140,6 +148,10 @@ Thank you :)
 ## License
 
 These code are licensed under MIT License. You are free to use any parts of it.
+
+
+
+_KEEP CALM AND CODE ON :beers:_
 
 [cirle-ci-badge]: https://circleci.com/gh/tekuasia/autossl/tree/master.svg?style=shield
 [cirle-ci-url]: https://circleci.com/gh/tekuasia/autossl/tree/master
