@@ -13,8 +13,11 @@ Bulk of scripts to help secure your AWS apps with free SSL certificates
    - [AWS ACM](#aws-acm)
    - [AWS IAM](#aws-iam)
    - [Google Cloud](#google-cloud)
-4. [Contribution](#contribution)
-5. [License](#license)
+4. [Automate renewal](#automate-renewal)
+   - [Renewal without cloud](#renewal-without-cloud)
+   - [Renewal with cloud](#renewal-with-cloud)
+5. [Contribution](#contribution)
+6. [License](#license)
 
 ## Installation
 
@@ -83,6 +86,48 @@ To synchronize your certificates to AWS IAM
 ```bash
 autossl sync gcloud
 ```
+
+## Automate renewal
+
+### Renewal without cloud
+
+> We suggest you to setup cronjob for automatically check expiration of certifcates everyday (There could be other approaches)
+
+```bash
+crontab –e
+```
+
+Then add this line to make renewal automated everyday at 3:00
+```
+00 03 * * * autossl renew
+```
+
+### Renewal with cloud
+
+> We suggest you to setup cronjob for automatically check expiration of certifcates everyday (There could be other approaches)
+
+[Optional] Init AWS for the first time if you are using AWS to manage SSL
+
+```bash
+autossl init-aws
+```
+
+[Optional] Init Google Cloud for the first time if you are using Google Cloud to manage SSL
+
+```bash
+autossl init-gcloud
+```
+Open crontab editor
+
+```bash
+crontab –e
+```
+
+Then add this line to make renewal automated and renewed certificates synced to cloud provider automatically everyday at 3:00
+```
+00 03 * * * autossl sync <provider> "$(autossl renew -d)"
+```
+
 
 ## Contribution
 
