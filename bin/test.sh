@@ -1,2 +1,5 @@
-./autossl init
-./autossl list
+#!bin/bash
+
+chmod +x ./dist/autossl
+./dist/autossl init
+./dist/autossl list
