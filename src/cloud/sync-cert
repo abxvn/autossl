@@ -4,7 +4,30 @@ sync-cert () {
     elif [ "$1" = "" ]; then
         echo "Please specify provider to sync"
     elif [ "$1" = "iam" ]; then
-        echo "Syncing certificates to AWS IAM"
+        echo "Importing certificates to AWS IAM, please don't cancel during this operation"
+        
+        if ! has-command aws; then
+            install-aws
+        fi
+
         iam-sync-cert
+    elif [ "$1" = "acm" ]; then
+        echo "Importing certificates to AWS ACM, please don't cancel during this operation"
+
+        if ! has-command aws; then
+            install-aws
+        fi
+        
+        acm-sync-cert
+    elif [ "$1" = "gcloud" ]; then
+        echo "Importing certificates to Gcloud, please don't cancel during this operation"
+
+        if ! has-command gcloud; then
+            install-gcloud
+        fi
+        
+        gcloud-sync-cert
+    else
+        echo "[ERROR] Not supported cloud provider: $1"
     fi
 }

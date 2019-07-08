@@ -1,7 +1,7 @@
-iam-sync-cert () {
+gcloud-sync-cert () {
     FILE_LIST="cert.pem privkey.pem chain.pem"
-    DATE=`date '+%Y-%m'`
     SITES=$(list-certs)
+    DATE=`date '+%Y-%m'`
 
     if [ "$SITES" == "" ]; then
         return
@@ -9,7 +9,7 @@ iam-sync-cert () {
 
     for SITE_NAME in $SITES 
     do
-        CERT_NAME="$(get-cert-name $SITE_NAME)-$DATE"
+        CERT_NAME="$(get-cert-name $SITE_NAME | sed -e "s:\-:--:g" -e "s:\+\.:wc-:g" -e "s:\.:-:g")-$DATE"
         echo "Importing certificates for site: $SITE_NAME  -->  $CERT_NAME"
         missing_certfile=0
 
@@ -33,12 +33,10 @@ iam-sync-cert () {
             continue
         fi
 
-        # Upload new certificate to IAM
-        if aws iam upload-server-certificate \
-            --server-certificate-name "$CERT_NAME" \
-            --certificate-body "file:///$LOCAL_PATH/$SITE_NAME/cert.pem" \
-            --private-key "file:///$LOCAL_PATH/$SITE_NAME/privkey.pem" \
-            --certificate-chain "file:///$LOCAL_PATH/$SITE_NAME/chain.pem" 1>/dev/null; then
+        # Upload new certificate to Gcloud
+        if gcloud compute ssl-certificates create $CERT_NAME \
+            --certificate "$LOCAL_PATH/$SITE_NAME/cert.pem" \
+            --private-key "$LOCAL_PATH/$SITE_NAME/privkey.pem"; then
             echo "Created"
         fi
     done

@@ -13,3 +13,6 @@ cert/renew-all
 cloud/sync-cert
 cloud/install-aws
 cloud/iam-sync-cert
+cloud/acm-sync-cert
+cloud/install-gcloud
+cloud/gcloud-sync-cert

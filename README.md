@@ -8,7 +8,9 @@ Bulk of scripts to help secure your AWS apps with free SSL certificates
 1. [Installation](#installation)
 2. [Usage](#usage)
 3. [Cloud integration](#cloud-integration)
-   - [AWS](#aws)
+   - [AWS ACM](#aws-acm)
+   - [AWS IAM](#aws-iam)
+   - [Google Cloud](#google-cloud)
 4. [Contribution](#contribution)
 5. [License](#license)
 
@@ -44,17 +46,40 @@ autossl renew
 
 Currently we only support AWS IAM
 
-### AWS
+### AWS ACM
 
 We need to prepare an AWS user with these permissions:
 
-- iam:ListServerCertificates
+- acm:ImportCertificates
+- acm:DescribeCertificate
+- acm:ListCertificates
+
+To synchronize your certificates to AWS IAM
+
+```bash
+autossl sync acm
+```
+
+### AWS IAM
+
+We need to prepare an AWS user with these permissions:
+
 - iam:UploadServerCertificate
 
-To synchronize your certificate to AWS IAM
+To synchronize your certificates to AWS IAM
 
 ```bash
 autossl sync iam
+```
+
+### Google Cloud
+
+We need to enable cloud compute engine at [https://console.developers.google.com/apis/api/compute.googleapis.com](https://console.developers.google.com/apis/api/compute.googleapis.com)
+
+To synchronize your certificates to AWS IAM
+
+```bash
+autossl sync gcloud
 ```
 
 ## Contribution

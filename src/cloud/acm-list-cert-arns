@@ -1,0 +1,3 @@
+acm-list-cert-arns () {
+    echo "$(aws acm list-certificates --query 'CertificateSummaryList[*].CertificateArn' --output text)"
+}
