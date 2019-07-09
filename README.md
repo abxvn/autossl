@@ -1,6 +1,6 @@
 # AutoSSL
 
-Bulk of scripts to help secure your AWS apps with free SSL certificates
+Help you secure your applications with free SSL certificates
 
 [![Cirle CI][cirle-ci-badge]][cirle-ci-url]
 
