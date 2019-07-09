@@ -60,7 +60,7 @@ We need to prepare an AWS user with these permissions:
 - acm:DescribeCertificate
 - acm:ListCertificates
 
-To synchronize your certificates to AWS IAM
+To synchronize your certificates to AWS ACM
 
 ```bash
 autossl sync acm
@@ -141,7 +141,7 @@ For Apache: [https://techmonger.github.io/50/certbot-apache-configuration/](http
 
 Everyone deserves free SSL certificates and free security. This tool was born for that purpose: Make it easier for people to get free SSL certificates. I really need your help to make this tool better.
 
-If you want to help me, please fork this repositories, make your changes and give me a pull request.
+If you want to help me, please fork this repository, make your changes and give me a pull request.
 
 Thank you :)
 
