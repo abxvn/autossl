@@ -30,13 +30,18 @@ curl -s -L  https://raw.githubusercontent.com/tekuasia/autossl/master/bin/instal
 
 ## Usage
 
-To generate free SSL certificate for your domain
+All commands can be listed using `autossl help`:
+
+![Screenshot][screenshot]
+
+
+To generate free SSL certificate for a domain
 
 ```bash
 autossl email@example.com example.com
 ```
 
-For wildcard domains
+To generate free SSL certificate for wildcard domains
 
 ```bash
 autossl email@example.com example.com *.example.com *.tld.example.com
@@ -155,3 +160,4 @@ _KEEP CALM AND CODE ON :beers:_
 
 [cirle-ci-badge]: https://circleci.com/gh/tekuasia/autossl/tree/master.svg?style=shield
 [cirle-ci-url]: https://circleci.com/gh/tekuasia/autossl/tree/master
+[screenshot]: others/screenshot.png?raw=true
