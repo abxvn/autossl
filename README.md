@@ -3,10 +3,13 @@
 Help you secure your applications with free SSL certificates
 
 [![Cirle CI][cirle-ci-badge]][cirle-ci-url]
+[![Tested Ubuntu version][ubuntu-badge]][ubuntu-url]
+[![Tested Centos version][centos-badge]][centos-url]
 
 > :innocent: A :star: from you will make my day full of happiness :innocent:
 
 ## Table of contents
+
 1. [Installation](#installation)
 2. [Usage](#usage)
 3. [Cloud integration](#cloud-integration)
@@ -33,7 +36,6 @@ curl -s -L  https://raw.githubusercontent.com/tekuasia/autossl/master/bin/instal
 All commands can be listed using `autossl help`:
 
 ![Screenshot][screenshot]
-
 
 To generate free SSL certificate for a domain
 
@@ -104,6 +106,7 @@ crontab –e
 ```
 
 Then add this line to make renewal automated everyday at 3:00
+
 ```
 00 03 * * * autossl renew
 ```
@@ -123,6 +126,7 @@ autossl init-aws
 ```bash
 autossl init-gcloud
 ```
+
 Open crontab editor
 
 ```bash
@@ -130,6 +134,7 @@ crontab –e
 ```
 
 Then add this line to make renewal automated and renewed certificates synced to cloud provider automatically everyday at 3:00
+
 ```
 00 03 * * * autossl sync <provider> "$(autossl renew -d)"
 ```
@@ -154,10 +159,12 @@ Thank you :)
 
 These code are licensed under MIT License. You are free to use any parts of it.
 
-
-
 _KEEP CALM AND CODE ON :beers:_
 
 [cirle-ci-badge]: https://circleci.com/gh/tekuasia/autossl/tree/master.svg?style=shield
 [cirle-ci-url]: https://circleci.com/gh/tekuasia/autossl/tree/master
 [screenshot]: others/screenshot.png?raw=true
+[ubuntu-badge]: https://img.shields.io/badge/ubuntu-18.04-green.svg
+[ubuntu-url]: https://wiki.ubuntu.com/Releases
+[centos-badge]: https://img.shields.io/badge/centos-7.0-green.svg
+[centos-url]: https://www.centos.org/
