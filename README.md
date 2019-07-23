@@ -3,6 +3,7 @@
 Help you secure your applications with free SSL certificates
 
 [![Cirle CI][cirle-ci-badge]][cirle-ci-url]
+[![Tested Ubuntu version][ubuntu-xenial-badge]][ubuntu-xenial-url]
 [![Tested Ubuntu version][ubuntu-badge]][ubuntu-url]
 [![Tested Centos version][centos-badge]][centos-url]
 
@@ -85,15 +86,19 @@ To synchronize your certificates to AWS IAM
 autossl sync iam
 ```
 
+**Please note:** Your certificates will be saved into IAM as `<domain-names>-YYYY-MM`. For example, you synchronize certificate for example&#46;com in June 2019, it will be named as `example-com-2019-06`
+
 ### Google Cloud
 
 We need to enable cloud compute engine at [https://console.developers.google.com/apis/api/compute.googleapis.com](https://console.developers.google.com/apis/api/compute.googleapis.com)
 
-To synchronize your certificates to AWS IAM
+To synchronize your certificates to Google Cloud
 
 ```bash
 autossl sync gcloud
 ```
+
+**Please note:** Your certificates will be saved into Gcloud as `<domain-names>-YYYY-MM`. For example, you synchronize certificate for example&#46;com in June 2019, it will be named as `example-com-2019-06`
 
 ## Automate renewal
 
@@ -166,5 +171,7 @@ _KEEP CALM AND CODE ON :beers:_
 [screenshot]: others/screenshot.png?raw=true
 [ubuntu-badge]: https://img.shields.io/badge/ubuntu-18.04-green.svg
 [ubuntu-url]: https://wiki.ubuntu.com/Releases
+[ubuntu-xenial-badge]: https://img.shields.io/badge/ubuntu-16.04-green.svg
+[ubuntu-xenial-url]: https://wiki.ubuntu.com/Releases
 [centos-badge]: https://img.shields.io/badge/centos-7.0-green.svg
 [centos-url]: https://www.centos.org/
