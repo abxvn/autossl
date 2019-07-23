@@ -58,8 +58,6 @@ autossl renew
 
 ## Cloud integration
 
-Currently we only support AWS IAM
-
 ### AWS ACM
 
 We need to prepare an AWS user with these permissions:
