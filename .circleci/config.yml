@@ -25,4 +25,5 @@ workflows:
   test_simple:
     jobs:
       - test-ubuntu
+      - test-ubuntu-16
       - test-centos
