@@ -16,7 +16,7 @@ help () {
     echo '         renew             Renew all certificates'
     echo '         sync <provider>   Sync certificates to a provider. Provider list can be found at'
     echo '                           https://github.com/tekuasia/autossl#cloud-integration'
-    echo '         help              Display help'
+    echo '         help, --help      Display help'
     echo '         init-aws          Init AWS'
     echo '         init-gcloud       Init Gcloud'
     echo '         init              Init installation'
@@ -368,7 +368,7 @@ MODE="$1"
 EMAIL="$1"
 DOMAINS=${@:2}
 
-if [ "$MODE" = "help" ]; then
+if [ "$MODE" = "help" ] || [ "$MODE" = "--help" ]; then
     help
 elif [ "$MODE" = "renew" ]; then
     renew-all "$2"
@@ -388,7 +388,8 @@ elif [[ "$EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$ ]] && [[ "
 elif [ "$MODE" = "sync" ]; then
     sync-cert "$2" "$3"
 else
-    echo "Invalid syntax. Please run --help"
+    echo "Invalid syntax. autossl --help"
+    help
     exit 1
 fi
 

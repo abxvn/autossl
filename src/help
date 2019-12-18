@@ -13,7 +13,7 @@ help () {
     echo '         renew             Renew all certificates'
     echo '         sync <provider>   Sync certificates to a provider. Provider list can be found at'
     echo '                           https://github.com/tekuasia/autossl#cloud-integration'
-    echo '         help              Display help'
+    echo '         help, --help      Display help'
     echo '         init-aws          Init AWS'
     echo '         init-gcloud       Init Gcloud'
     echo '         init              Init installation'
