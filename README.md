@@ -1,6 +1,6 @@
 # AutoSSL
 
-Help you secure your applications with free SSL certificates
+Help you secure your applications with free SSL certificates. This tool is designed for simple and straightforward usage, for more complex and wider supported of OS, please use [https://acme.sh/](https://acme.sh/)
 
 [![Cirle CI][cirle-ci-badge]][cirle-ci-url]
 [![Tested Ubuntu version][ubuntu-xenial-badge]][ubuntu-xenial-url]
