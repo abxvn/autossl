@@ -375,7 +375,7 @@ elif [ "$MODE" = "renew" ]; then
 elif [ "$MODE" = "list" ]; then
     list-certs
 elif [ "$MODE" = "get" ]; then
-    get-site "$2"
+    get-cert "$2"
 elif [ "$MODE" = "init" ]; then
     install-packages
 elif [ "$MODE" = "init-aws" ]; then
